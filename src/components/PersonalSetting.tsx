@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -45,10 +45,14 @@ const getChatbotStyle = (primaryColor: string, secondaryColor: string) => ({
 });
 
 const PersonalSetting = () => {
-  const { primaryColor, setPrimaryColor } = useThemeStore();
+  const { primaryColor, setPrimaryColor, fetchTheme } = useThemeStore();
   const [secondaryColor, setSecondaryColor] = useState('#ffffff');
   const [font, setFont] = useState('sans-serif');
   const [fontSize, setFontSize] = useState(16);
+
+  useEffect(() => {
+    fetchTheme();
+  }, [fetchTheme]);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">

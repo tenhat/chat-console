@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -7,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useThemeStore } from '@/lib/store';
 import {
   Bar,
   BarChart,
@@ -19,35 +19,42 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-
-const searchData = [
-  { name: '月', searches: 400 },
-  { name: '火', searches: 300 },
-  { name: '水', searches: 500 },
-  { name: '木', searches: 280 },
-  { name: '金', searches: 450 },
-  { name: '土', searches: 200 },
-  { name: '日', searches: 180 },
-];
-
-const userActionData = [
-  { name: 'クリック', value: 400 },
-  { name: 'スクロール', value: 300 },
-  { name: '検索', value: 300 },
-];
-
-const userTrendData = [
-  { name: '1週間前', users: 400 },
-  { name: '6日前', users: 300 },
-  { name: '5日前', users: 500 },
-  { name: '4日前', users: 280 },
-  { name: '3日前', users: 450 },
-  { name: '2日前', users: 200 },
-  { name: '1日前', users: 180 },
-];
+import { useThemeStore, useDashboardStore } from '../lib/store';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const primaryColor = useThemeStore((state) => state.primaryColor);
+  const { data, isLoading, error, fetchDashboardData } = useDashboardStore();
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-red-500">エラーが発生しました: {error}</div>;
+  }
+
+  if (!data) {
+    return null;
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -58,7 +65,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={searchData}>
+            <BarChart data={data.searchData}>
               <XAxis dataKey="name" />
               <YAxis />
               <Bar dataKey="searches" fill={primaryColor} />
@@ -75,7 +82,7 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={userActionData}
+                data={data.userActionData}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
@@ -95,7 +102,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={userTrendData}>
+            <LineChart data={data.userTrendData}>
               <XAxis dataKey="name" />
               <YAxis />
               <Line type="monotone" dataKey="users" stroke={primaryColor} />
